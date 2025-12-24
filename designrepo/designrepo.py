@@ -10,7 +10,7 @@ def index() -> rx.Component:
     return rx.flex(
         rx.box(
             project_list(),
-            width={"sm": "100%", "md": "280px", "lg": "320px"},
+            flex="1",
             height="100vh",
             border_right=f"1px solid {rx.color('gray', 4)}",
             background_color=rx.color("gray", 2),
@@ -49,10 +49,7 @@ def index() -> rx.Component:
                     ),
                     rx.divider(),
                     rx.flex(
-                        rx.box(
-                            diagram_list(),
-                            width={"sm": "100%", "md": "250px"},
-                        ),
+                        rx.box(diagram_list(), flex="1"),
                         rx.box(
                             rx.cond(
                                 State.current_diagram,
@@ -89,7 +86,7 @@ def index() -> rx.Component:
                                     width="100%",
                                 ),
                             ),
-                            flex="1",
+                            flex="4",
                         ),
                         width="100%",
                         padding_top="8",
@@ -121,7 +118,7 @@ def index() -> rx.Component:
                     height="100vh",
                 ),
             ),
-            flex="1",
+            flex="8",
             height="100vh",
             overflow_y="auto",
             background_color=rx.color("gray", 1),
