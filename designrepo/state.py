@@ -33,6 +33,8 @@ class DiagramSchema(pydantic.BaseModel):
 class State(rx.State):
     """The base state for the app."""
 
+    state_auto_setters = False
+
     projects: List[ProjectSchema] = []
     current_project: Optional[ProjectSchema] = None
 
@@ -55,13 +57,21 @@ class State(rx.State):
 
     # OpenAI
     ai_prompt: str = ""
+    ai_notes_prompt: str = ""
     is_loading: bool = False
     show_ai_modal: bool = False
+    show_ai_notes_modal: bool = False
+    refer_to_diagram: bool = True
 
     def toggle_ai_modal(self):
         self.show_ai_modal = not self.show_ai_modal
         if not self.show_ai_modal:
             self.ai_prompt = ""
+
+    def toggle_ai_notes_modal(self):
+        self.show_ai_notes_modal = not self.show_ai_notes_modal
+        if not self.show_ai_notes_modal:
+            self.ai_notes_prompt = ""
 
     def set_project_name(self, value: str):
         self.project_name = value
@@ -86,6 +96,24 @@ class State(rx.State):
 
     def set_ai_prompt(self, value: str):
         self.ai_prompt = value
+
+    def set_ai_notes_prompt(self, value: str):
+        self.ai_notes_prompt = value
+
+    def set_refer_to_diagram(self, value: bool):
+        self.refer_to_diagram = value
+
+    def set_show_project_modal(self, value: bool):
+        self.show_project_modal = value
+
+    def set_show_diagram_modal(self, value: bool):
+        self.show_diagram_modal = value
+
+    def set_show_ai_modal(self, value: bool):
+        self.show_ai_modal = value
+
+    def set_show_ai_notes_modal(self, value: bool):
+        self.show_ai_notes_modal = value
 
     @rx.var
     def plantuml_url(self) -> str:
@@ -312,24 +340,35 @@ class State(rx.State):
             yield
 
     async def generate_notes(self):
-        if not self.diagram_content:
+        if not self.ai_notes_prompt:
             return
         self.is_loading = True
+        self.show_ai_notes_modal = False
         yield
 
         try:
             client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+            system_msg = (
+                "Generate markdown documentation/notes based on the user instruction."
+            )
+            user_content = f"Instruction: {self.ai_notes_prompt}\n"
+
+            if self.refer_to_diagram and self.diagram_content:
+                user_content += f"\nRelevant Diagram Content ({self.diagram_type}):\n{self.diagram_content}"
+
             response = await client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {
                         "role": "system",
-                        "content": "Generate markdown documentation/notes for the following diagram code.",
+                        "content": system_msg,
                     },
-                    {"role": "user", "content": self.diagram_content},
+                    {"role": "user", "content": user_content},
                 ],
             )
             self.diagram_notes = response.choices[0].message.content
+            self.ai_notes_prompt = ""
         except Exception as e:
             yield rx.toast.error(f"Error generating notes: {str(e)}")
         finally:

@@ -176,14 +176,79 @@ def diagram_editor():
                 rx.text(
                     "Notes (Markdown)", size="2", weight="medium", color_scheme="gray"
                 ),
-                rx.text_area(
-                    value=State.diagram_notes,
-                    on_change=State.set_diagram_notes,
-                    placeholder="Enter notes in markdown...",
-                    height="250px",
+                rx.box(
+                    rx.text_area(
+                        value=State.diagram_notes,
+                        on_change=State.set_diagram_notes,
+                        placeholder="Enter notes in markdown...",
+                        height="250px",
+                        width="100%",
+                        variant="surface",
+                        style={"padding": "12px"},
+                    ),
+                    rx.dialog.root(
+                        rx.dialog.trigger(
+                            rx.button(
+                                rx.icon("sparkles", size=16),
+                                variant="soft",
+                                color_scheme="amber",
+                                position="absolute",
+                                top="12px",
+                                right="12px",
+                                z_index="10",
+                                cursor="pointer",
+                            ),
+                        ),
+                        rx.dialog.content(
+                            rx.vstack(
+                                rx.dialog.title("AI Notes Assistant"),
+                                rx.dialog.description(
+                                    "Provide a prompt instruction to update or generate the notes."
+                                ),
+                                rx.text_area(
+                                    value=State.ai_notes_prompt,
+                                    on_change=State.set_ai_notes_prompt,
+                                    placeholder="e.g., Summarize the technical architecture described in the diagram...",
+                                    width="100%",
+                                    height="150px",
+                                ),
+                                rx.flex(
+                                    rx.text("Refer to Diagram", size="2"),
+                                    rx.spacer(),
+                                    rx.switch(
+                                        checked=State.refer_to_diagram,
+                                        on_change=State.set_refer_to_diagram,
+                                    ),
+                                    width="100%",
+                                    align_items="center",
+                                ),
+                                rx.hstack(
+                                    rx.dialog.close(
+                                        rx.button(
+                                            "Cancel",
+                                            variant="soft",
+                                            color_scheme="gray",
+                                        ),
+                                    ),
+                                    rx.spacer(),
+                                    rx.button(
+                                        "Generate",
+                                        on_click=State.generate_notes,
+                                        is_loading=State.is_loading,
+                                        variant="solid",
+                                        color_scheme="indigo",
+                                    ),
+                                    width="100%",
+                                    padding_top="4",
+                                ),
+                                spacing="4",
+                            ),
+                        ),
+                        open=State.show_ai_notes_modal,
+                        on_open_change=State.set_show_ai_notes_modal,
+                    ),
+                    position="relative",
                     width="100%",
-                    variant="surface",
-                    style={"padding": "12px"},
                 ),
                 width="100%",
                 spacing="2",
