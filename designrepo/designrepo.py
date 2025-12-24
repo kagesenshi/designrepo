@@ -74,7 +74,9 @@ def index() -> rx.Component:
                                 rx.center(
                                     rx.vstack(
                                         rx.icon(
-                                            "layout", size=40, color=rx.color("gray", 8)
+                                            "layout_dashboard",
+                                            size=40,
+                                            color=rx.color("gray", 8),
                                         ),
                                         rx.text(
                                             "Select or add a diagram to start editing",

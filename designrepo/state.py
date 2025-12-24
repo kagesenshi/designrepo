@@ -7,16 +7,37 @@ from datetime import datetime
 import urllib.parse
 import zlib
 import base64
+import pendulum
+import pydantic
+
+
+class ProjectSchema(pydantic.BaseModel):
+    id: Optional[int] = None
+    name: str = ""
+    description: str = ""
+    created_at: Optional[datetime] = None
+
+
+class DiagramSchema(pydantic.BaseModel):
+    id: Optional[int] = None
+    project_id: Optional[int] = None
+    name: str = ""
+    content: str = ""
+    diagram_type: str = "plantuml"
+    category: str = "to-be"
+    notes: str = ""
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class State(rx.State):
     """The base state for the app."""
 
-    projects: List[Project] = []
-    current_project: Optional[Project] = None
+    projects: List[ProjectSchema] = []
+    current_project: Optional[ProjectSchema] = None
 
-    diagrams: List[Diagram] = []
-    current_diagram: Optional[Diagram] = None
+    diagrams: List[DiagramSchema] = []
+    current_diagram: Optional[DiagramSchema] = None
 
     # Form fields
     project_name: str = ""
@@ -31,6 +52,30 @@ class State(rx.State):
     # OpenAI
     ai_prompt: str = ""
     is_loading: bool = False
+
+    def set_project_name(self, value: str):
+        self.project_name = value
+
+    def set_project_description(self, value: str):
+        self.project_description = value
+
+    def set_diagram_name(self, value: str):
+        self.diagram_name = value
+
+    def set_diagram_content(self, value: str):
+        self.diagram_content = value
+
+    def set_diagram_type(self, value: str):
+        self.diagram_type = value
+
+    def set_diagram_category(self, value: str):
+        self.diagram_category = value
+
+    def set_diagram_notes(self, value: str):
+        self.diagram_notes = value
+
+    def set_ai_prompt(self, value: str):
+        self.ai_prompt = value
 
     @rx.var
     def plantuml_url(self) -> str:
@@ -66,7 +111,16 @@ class State(rx.State):
 
     def load_projects(self):
         with rx.session() as session:
-            self.projects = session.exec(Project.select()).all()
+            db_projects = session.exec(Project.select()).all()
+            self.projects = [
+                ProjectSchema(
+                    id=p.id,
+                    name=p.name,
+                    description=p.description,
+                    created_at=p.created_at,
+                )
+                for p in db_projects
+            ]
 
     def add_project(self):
         if not self.project_name:
@@ -89,7 +143,7 @@ class State(rx.State):
             self.project_name = ""
             self.project_description = ""
 
-    def select_project(self, project: Project):
+    def select_project(self, project: ProjectSchema):
         self.current_project = project
         self.load_diagrams()
 
@@ -97,9 +151,23 @@ class State(rx.State):
         if not self.current_project:
             return
         with rx.session() as session:
-            self.diagrams = session.exec(
+            db_diagrams = session.exec(
                 Diagram.select().where(Diagram.project_id == self.current_project.id)
             ).all()
+            self.diagrams = [
+                DiagramSchema(
+                    id=d.id,
+                    project_id=d.project_id,
+                    name=d.name,
+                    content=d.content,
+                    diagram_type=d.diagram_type,
+                    category=d.category,
+                    notes=d.notes,
+                    created_at=d.created_at,
+                    updated_at=d.updated_at,
+                )
+                for d in db_diagrams
+            ]
 
     def add_diagram(self):
         if not self.current_project:
@@ -135,7 +203,7 @@ class State(rx.State):
             self.diagram_content = ""
             self.diagram_notes = ""
 
-    def select_diagram(self, diagram: Diagram):
+    def select_diagram(self, diagram: DiagramSchema):
         self.current_diagram = diagram
         self.diagram_name = diagram.name
         self.diagram_content = diagram.content
@@ -171,12 +239,23 @@ class State(rx.State):
             diagram.diagram_type = self.diagram_type
             diagram.category = self.diagram_category
             diagram.notes = self.diagram_notes
-            diagram.updated_at = datetime.now()
+            diagram.updated_at = datetime.now(tz=pendulum.local_timezone())
             session.add(diagram)
             session.commit()
+            session.refresh(diagram)
             self.load_diagrams()
             # Update current diagram in state to reflect changes
-            self.current_diagram = diagram
+            self.current_diagram = DiagramSchema(
+                id=diagram.id,
+                project_id=diagram.project_id,
+                name=diagram.name,
+                content=diagram.content,
+                diagram_type=diagram.diagram_type,
+                category=diagram.category,
+                notes=diagram.notes,
+                created_at=diagram.created_at,
+                updated_at=diagram.updated_at,
+            )
 
     async def generate_diagram(self):
         if not self.ai_prompt:

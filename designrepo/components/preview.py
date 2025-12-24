@@ -59,14 +59,12 @@ def preview():
                                 State.diagram_type == "mermaid",
                                 rx.image(
                                     src=State.mermaid_url,
-                                    width="100%",
                                     border_radius="md",
                                 ),
                                 rx.cond(
                                     State.diagram_type == "plantuml",
                                     rx.image(
                                         src=State.plantuml_url,
-                                        width="100%",
                                         border_radius="md",
                                     ),
                                     rx.el.iframe(
