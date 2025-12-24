@@ -40,66 +40,56 @@ def preview():
                 padding_bottom="6",
             ),
             rx.divider(),
-            rx.tabs.root(
-                rx.tabs.list(
-                    rx.tabs.trigger(
-                        rx.hstack(rx.icon("image", size=14), rx.text("Diagram")),
-                        value="diagram",
+            # Diagram Section
+            rx.box(
+                rx.cond(
+                    State.diagram_type == "mermaid",
+                    rx.image(
+                        src=State.mermaid_url,
+                        border_radius="md",
                     ),
-                    rx.tabs.trigger(
-                        rx.hstack(rx.icon("file-text", size=14), rx.text("Notes")),
-                        value="notes",
-                    ),
-                    spacing="6",
-                ),
-                rx.tabs.content(
-                    rx.vstack(
-                        rx.box(
-                            rx.cond(
-                                State.diagram_type == "mermaid",
-                                rx.image(
-                                    src=State.mermaid_url,
-                                    border_radius="md",
-                                ),
-                                rx.cond(
-                                    State.diagram_type == "plantuml",
-                                    rx.image(
-                                        src=State.plantuml_url,
-                                        border_radius="md",
-                                    ),
-                                    rx.el.iframe(
-                                        src=State.drawio_url,
-                                        frameborder="0",
-                                        style={
-                                            "width": "100%",
-                                            "height": "650px",
-                                            "border-radius": "12px",
-                                            "background": "white",
-                                        },
-                                    ),
-                                ),
-                            ),
-                            width="100%",
-                            padding_top="8",
-                            padding_bottom="4",
+                    rx.cond(
+                        State.diagram_type == "plantuml",
+                        rx.image(
+                            src=State.plantuml_url,
+                            border_radius="md",
                         ),
-                        width="100%",
+                        rx.el.iframe(
+                            src=State.drawio_url,
+                            frameborder="0",
+                            style={
+                                "width": "100%",
+                                "height": "650px",
+                                "border-radius": "12px",
+                                "background": "white",
+                            },
+                        ),
                     ),
-                    value="diagram",
                 ),
-                rx.tabs.content(
-                    rx.box(
-                        rx.markdown(State.diagram_notes),
-                        width="100%",
-                        padding="8",
-                        background_color=rx.color("gray", 2),
-                        border_radius="lg",
-                        margin_top="8",
-                    ),
-                    value="notes",
-                ),
-                default_value="diagram",
                 width="100%",
+                padding_top="4",
+                padding_bottom="4",
+            ),
+            rx.divider(),
+            # Notes Section
+            rx.vstack(
+                rx.hstack(
+                    rx.icon("file-text", size=18, color=rx.color("gray", 9)),
+                    rx.heading("Notes", size="4", weight="bold"),
+                    align_items="center",
+                    spacing="2",
+                    padding_top="4",
+                ),
+                rx.box(
+                    rx.markdown(State.diagram_notes),
+                    width="100%",
+                    padding="8",
+                    background_color=rx.color("gray", 2),
+                    border_radius="lg",
+                ),
+                width="100%",
+                spacing="4",
+                align_items="start",
             ),
             width="100%",
             spacing="1",
