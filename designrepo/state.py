@@ -124,14 +124,14 @@ class State(rx.State):
 
     def add_project(self):
         if not self.project_name:
-            return rx.window_alert("Project name is required")
+            return rx.toast.error("Project name is required")
         with rx.session() as session:
             # Check for duplicate project name
             existing = session.exec(
                 Project.select().where(Project.name == self.project_name)
             ).first()
             if existing:
-                return rx.window_alert(f"Project '{self.project_name}' already exists.")
+                return rx.toast.error(f"Project '{self.project_name}' already exists.")
 
             project = Project(
                 name=self.project_name, description=self.project_description
@@ -173,7 +173,7 @@ class State(rx.State):
         if not self.current_project:
             return
         if not self.diagram_name:
-            return rx.window_alert("Diagram name is required")
+            return rx.toast.error("Diagram name is required")
 
         with rx.session() as session:
             # Check for duplicate diagram name in the same project
@@ -184,7 +184,7 @@ class State(rx.State):
                 )
             ).first()
             if existing:
-                return rx.window_alert(
+                return rx.toast.error(
                     f"Diagram '{self.diagram_name}' already exists in this project."
                 )
 
@@ -215,7 +215,7 @@ class State(rx.State):
         if not self.current_diagram:
             return
         if not self.diagram_name:
-            return rx.window_alert("Diagram name is required")
+            return rx.toast.error("Diagram name is required")
 
         with rx.session() as session:
             # Check for duplicate diagram name (excluding the current one)
@@ -227,7 +227,7 @@ class State(rx.State):
                 )
             ).first()
             if existing:
-                return rx.window_alert(
+                return rx.toast.error(
                     f"Another diagram named '{self.diagram_name}' already exists in this project."
                 )
 
@@ -281,7 +281,7 @@ class State(rx.State):
                 content = "\n".join(content.split("\n")[1:-1])
             self.diagram_content = content
         except Exception as e:
-            yield rx.window_alert(f"Error generating diagram: {str(e)}")
+            yield rx.toast.error(f"Error generating diagram: {str(e)}")
         finally:
             self.is_loading = False
             yield
@@ -306,7 +306,7 @@ class State(rx.State):
             )
             self.diagram_notes = response.choices[0].message.content
         except Exception as e:
-            yield rx.window_alert(f"Error generating notes: {str(e)}")
+            yield rx.toast.error(f"Error generating notes: {str(e)}")
         finally:
             self.is_loading = False
             yield
