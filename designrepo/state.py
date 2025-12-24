@@ -49,6 +49,10 @@ class State(rx.State):
     diagram_category: str = "to-be"
     diagram_notes: str = ""
 
+    # Modal visibility
+    show_project_modal: bool = False
+    show_diagram_modal: bool = False
+
     # OpenAI
     ai_prompt: str = ""
     is_loading: bool = False
@@ -142,6 +146,7 @@ class State(rx.State):
             self.load_projects()
             self.project_name = ""
             self.project_description = ""
+            self.show_project_modal = False
 
     def select_project(self, project: ProjectSchema):
         self.current_project = project
@@ -202,6 +207,7 @@ class State(rx.State):
             self.diagram_name = ""
             self.diagram_content = ""
             self.diagram_notes = ""
+            self.show_diagram_modal = False
 
     def select_diagram(self, diagram: DiagramSchema):
         self.current_diagram = diagram

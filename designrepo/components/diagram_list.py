@@ -7,7 +7,58 @@ def diagram_list():
         rx.flex(
             rx.heading("Diagrams", size="4", weight="bold"),
             rx.spacer(),
-            rx.icon("file-text", size=18, color=rx.color("gray", 9)),
+            rx.dialog.root(
+                rx.dialog.trigger(
+                    rx.icon_button(
+                        rx.icon("plus"),
+                        variant="ghost",
+                        size="2",
+                    ),
+                ),
+                rx.dialog.content(
+                    rx.dialog.title("New Diagram"),
+                    rx.dialog.description(
+                        "Enter the name for the new diagram.",
+                        size="2",
+                        margin_bottom="4",
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "Diagram Name",
+                            size="2",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            placeholder="Enter diagram name",
+                            value=State.diagram_name,
+                            on_change=State.set_diagram_name,
+                            variant="surface",
+                            width="100%",
+                        ),
+                        rx.flex(
+                            rx.dialog.close(
+                                rx.button(
+                                    "Cancel",
+                                    variant="soft",
+                                    color_scheme="gray",
+                                ),
+                            ),
+                            rx.spacer(),
+                            rx.button(
+                                "Add Diagram",
+                                on_click=State.add_diagram,
+                                variant="solid",
+                            ),
+                            width="100%",
+                            padding_top="4",
+                        ),
+                        width="100%",
+                        spacing="3",
+                    ),
+                ),
+                open=State.show_diagram_modal,
+                on_open_change=State.set_show_diagram_modal,
+            ),
             width="100%",
             align_items="center",
             padding_bottom="4",
@@ -60,35 +111,6 @@ def diagram_list():
             spacing="2",
             padding_top="4",
             padding_bottom="4",
-        ),
-        rx.divider(),
-        rx.vstack(
-            rx.text("New Diagram", size="1", weight="medium", color_scheme="gray"),
-            rx.input(
-                placeholder="Name",
-                value=State.diagram_name,
-                on_change=State.set_diagram_name,
-                variant="surface",
-                size="2",
-                width="100%",
-            ),
-            rx.box(
-                rx.text("Add Diagram", size="2", weight="medium", align="center"),
-                on_click=State.add_diagram,
-                width="100%",
-                padding="2",
-                background_color=rx.color("indigo", 3),
-                color=rx.color("indigo", 9),
-                border_radius="md",
-                cursor="pointer",
-                _hover={
-                    "background_color": rx.color("indigo", 4),
-                },
-                margin_top="1",
-            ),
-            width="100%",
-            spacing="3",
-            padding_top="4",
         ),
         width="100%",
         align_items="start",

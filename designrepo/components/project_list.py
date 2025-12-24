@@ -7,10 +7,69 @@ def project_list():
         rx.flex(
             rx.heading("Projects", size="6", weight="bold"),
             rx.spacer(),
-            rx.icon_button(
-                rx.icon("plus"),
-                variant="ghost",
-                size="2",
+            rx.dialog.root(
+                rx.dialog.trigger(
+                    rx.icon_button(
+                        rx.icon("plus"),
+                        variant="ghost",
+                        size="2",
+                    ),
+                ),
+                rx.dialog.content(
+                    rx.dialog.title("Create New Project"),
+                    rx.dialog.description(
+                        "Fill in the details to create a new project.",
+                        size="2",
+                        margin_bottom="4",
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "Project Name",
+                            size="2",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            placeholder="Enter project name",
+                            value=State.project_name,
+                            on_change=State.set_project_name,
+                            variant="surface",
+                            width="100%",
+                        ),
+                        rx.text(
+                            "Description",
+                            size="2",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            placeholder="Enter description",
+                            value=State.project_description,
+                            on_change=State.set_project_description,
+                            variant="surface",
+                            width="100%",
+                        ),
+                        rx.flex(
+                            rx.dialog.close(
+                                rx.button(
+                                    "Cancel",
+                                    variant="soft",
+                                    color_scheme="gray",
+                                ),
+                            ),
+                            rx.spacer(),
+                            rx.button(
+                                "Add Project",
+                                on_click=State.add_project,
+                                variant="solid",
+                            ),
+                            width="100%",
+                            padding_top="4",
+                        ),
+                        width="100%",
+                        spacing="3",
+                    ),
+                ),
+                open=State.show_project_modal,
+                on_open_change=State.set_show_project_modal,
             ),
             width="100%",
             align_items="center",
@@ -56,37 +115,6 @@ def project_list():
             spacing="2",
             padding_top="6",
             padding_bottom="6",
-        ),
-        rx.spacer(),
-        rx.divider(),
-        rx.vstack(
-            rx.text(
-                "Create New Project", size="2", weight="medium", color_scheme="gray"
-            ),
-            rx.input(
-                placeholder="Project Name",
-                value=State.project_name,
-                on_change=State.set_project_name,
-                variant="surface",
-                width="100%",
-            ),
-            rx.input(
-                placeholder="Description",
-                value=State.project_description,
-                on_change=State.set_project_description,
-                variant="surface",
-                width="100%",
-            ),
-            rx.button(
-                "Add Project",
-                on_click=State.add_project,
-                width="100%",
-                variant="solid",
-                margin_top="2",
-            ),
-            width="100%",
-            spacing="4",
-            padding_top="6",
         ),
         width="100%",
         padding="8",
