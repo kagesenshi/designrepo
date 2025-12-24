@@ -72,6 +72,13 @@ class State(rx.State):
         if not self.project_name:
             return rx.window_alert("Project name is required")
         with rx.session() as session:
+            # Check for duplicate project name
+            existing = session.exec(
+                Project.select().where(Project.name == self.project_name)
+            ).first()
+            if existing:
+                return rx.window_alert(f"Project '{self.project_name}' already exists.")
+
             project = Project(
                 name=self.project_name, description=self.project_description
             )
@@ -97,7 +104,22 @@ class State(rx.State):
     def add_diagram(self):
         if not self.current_project:
             return
+        if not self.diagram_name:
+            return rx.window_alert("Diagram name is required")
+
         with rx.session() as session:
+            # Check for duplicate diagram name in the same project
+            existing = session.exec(
+                Diagram.select().where(
+                    (Diagram.project_id == self.current_project.id)
+                    & (Diagram.name == self.diagram_name)
+                )
+            ).first()
+            if existing:
+                return rx.window_alert(
+                    f"Diagram '{self.diagram_name}' already exists in this project."
+                )
+
             diagram = Diagram(
                 project_id=self.current_project.id,
                 name=self.diagram_name,
@@ -124,7 +146,23 @@ class State(rx.State):
     def save_diagram(self):
         if not self.current_diagram:
             return
+        if not self.diagram_name:
+            return rx.window_alert("Diagram name is required")
+
         with rx.session() as session:
+            # Check for duplicate diagram name (excluding the current one)
+            existing = session.exec(
+                Diagram.select().where(
+                    (Diagram.project_id == self.current_diagram.project_id)
+                    & (Diagram.name == self.diagram_name)
+                    & (Diagram.id != self.current_diagram.id)
+                )
+            ).first()
+            if existing:
+                return rx.window_alert(
+                    f"Another diagram named '{self.diagram_name}' already exists in this project."
+                )
+
             diagram = session.exec(
                 Diagram.select().where(Diagram.id == self.current_diagram.id)
             ).first()
@@ -137,6 +175,8 @@ class State(rx.State):
             session.add(diagram)
             session.commit()
             self.load_diagrams()
+            # Update current diagram in state to reflect changes
+            self.current_diagram = diagram
 
     async def generate_diagram(self):
         if not self.ai_prompt:
