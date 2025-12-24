@@ -26,40 +26,86 @@ def encode_plantuml(text: str) -> str:
 
 
 def preview():
-    return rx.vstack(
-        rx.heading("Preview", size="6"),
-        rx.tabs.root(
-            rx.tabs.list(
-                rx.tabs.trigger("Diagram", value="diagram"),
-                rx.tabs.trigger("Notes", value="notes"),
-            ),
-            rx.tabs.content(
-                rx.vstack(
-                    rx.cond(
-                        State.diagram_type == "mermaid",
-                        rx.image(src=State.mermaid_url),
-                        rx.cond(
-                            State.diagram_type == "plantuml",
-                            rx.image(src=State.plantuml_url),
-                            rx.el.iframe(
-                                src=State.drawio_url,
-                                frameborder="0",
-                                style={"width": "100%", "height": "500px"},
-                            ),
-                        ),
-                    )
+    return rx.card(
+        rx.vstack(
+            rx.flex(
+                rx.hstack(
+                    rx.icon("eye", size=18, color=rx.color("gray", 9)),
+                    rx.heading("Preview", size="5", weight="bold"),
+                    align_items="center",
+                    spacing="2",
                 ),
-                value="diagram",
+                rx.spacer(),
+                width="100%",
+                padding_bottom="6",
             ),
-            rx.tabs.content(
-                rx.markdown(State.diagram_notes),
-                value="notes",
+            rx.divider(),
+            rx.tabs.root(
+                rx.tabs.list(
+                    rx.tabs.trigger(
+                        rx.hstack(rx.icon("image", size=14), rx.text("Diagram")),
+                        value="diagram",
+                    ),
+                    rx.tabs.trigger(
+                        rx.hstack(rx.icon("file-text", size=14), rx.text("Notes")),
+                        value="notes",
+                    ),
+                    spacing="6",
+                ),
+                rx.tabs.content(
+                    rx.vstack(
+                        rx.box(
+                            rx.cond(
+                                State.diagram_type == "mermaid",
+                                rx.image(
+                                    src=State.mermaid_url,
+                                    width="100%",
+                                    border_radius="md",
+                                ),
+                                rx.cond(
+                                    State.diagram_type == "plantuml",
+                                    rx.image(
+                                        src=State.plantuml_url,
+                                        width="100%",
+                                        border_radius="md",
+                                    ),
+                                    rx.el.iframe(
+                                        src=State.drawio_url,
+                                        frameborder="0",
+                                        style={
+                                            "width": "100%",
+                                            "height": "650px",
+                                            "border-radius": "12px",
+                                            "background": "white",
+                                        },
+                                    ),
+                                ),
+                            ),
+                            width="100%",
+                            padding_top="8",
+                            padding_bottom="4",
+                        ),
+                        width="100%",
+                    ),
+                    value="diagram",
+                ),
+                rx.tabs.content(
+                    rx.box(
+                        rx.markdown(State.diagram_notes),
+                        width="100%",
+                        padding="8",
+                        background_color=rx.color("gray", 2),
+                        border_radius="lg",
+                        margin_top="8",
+                    ),
+                    value="notes",
+                ),
+                default_value="diagram",
+                width="100%",
             ),
-            default_value="diagram",
             width="100%",
+            spacing="1",
         ),
         width="100%",
-        padding="4",
-        border="1px solid #e0e0e0",
-        border_radius="lg",
+        padding="8",
     )
