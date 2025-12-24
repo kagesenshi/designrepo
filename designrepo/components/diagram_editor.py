@@ -90,56 +90,86 @@ def diagram_editor():
                     spacing="4",
                 ),
                 rx.vstack(
-                    rx.text("Content", size="2", weight="medium", color_scheme="gray"),
-                    rx.text_area(
-                        value=State.diagram_content,
-                        on_change=State.set_diagram_content,
-                        placeholder="Enter diagram code here...",
-                        height="400px",
+                    rx.box(
+                        rx.text(
+                            "Content",
+                            size="2",
+                            weight="medium",
+                            color_scheme="gray",
+                            margin_bottom="2",
+                        ),
+                        rx.box(
+                            rx.text_area(
+                                value=State.diagram_content,
+                                on_change=State.set_diagram_content,
+                                placeholder="Enter diagram code here...",
+                                height="400px",
+                                width="100%",
+                                variant="surface",
+                                style={
+                                    "font-family": "monospace",
+                                    "font-size": "13px",
+                                    "padding": "12px",
+                                },
+                            ),
+                            rx.dialog.root(
+                                rx.dialog.trigger(
+                                    rx.button(
+                                        rx.icon("sparkles", size=16),
+                                        variant="soft",
+                                        color_scheme="amber",
+                                        position="absolute",
+                                        top="12px",
+                                        right="12px",
+                                        z_index="10",
+                                        cursor="pointer",
+                                    ),
+                                ),
+                                rx.dialog.content(
+                                    rx.vstack(
+                                        rx.dialog.title("AI Assistant"),
+                                        rx.dialog.description(
+                                            "Provide a prompt instruction to update or generate the diagram code."
+                                        ),
+                                        rx.text_area(
+                                            value=State.ai_prompt,
+                                            on_change=State.set_ai_prompt,
+                                            placeholder="e.g., Add a new component called 'Database'...",
+                                            width="100%",
+                                            height="150px",
+                                        ),
+                                        rx.hstack(
+                                            rx.dialog.close(
+                                                rx.button(
+                                                    "Cancel",
+                                                    variant="soft",
+                                                    color_scheme="gray",
+                                                ),
+                                            ),
+                                            rx.spacer(),
+                                            rx.button(
+                                                "Generate",
+                                                on_click=State.generate_diagram,
+                                                is_loading=State.is_loading,
+                                                variant="solid",
+                                                color_scheme="indigo",
+                                            ),
+                                            width="100%",
+                                            padding_top="4",
+                                        ),
+                                        spacing="4",
+                                    ),
+                                ),
+                                open=State.show_ai_modal,
+                                on_open_change=State.set_show_ai_modal,
+                            ),
+                            position="relative",
+                            width="100%",
+                        ),
                         width="100%",
-                        variant="surface",
-                        style={
-                            "font-family": "monospace",
-                            "font-size": "13px",
-                            "padding": "12px",
-                        },
                     ),
                     width="100%",
-                    spacing="2",
                 ),
-            ),
-            rx.divider(),
-            rx.vstack(
-                rx.flex(
-                    rx.hstack(
-                        rx.icon("sparkles", size=18, color=rx.color("amber", 9)),
-                        rx.heading("AI Assistant", size="3", weight="bold"),
-                        align_items="center",
-                        spacing="2",
-                    ),
-                    width="100%",
-                    padding_top="6",
-                ),
-                rx.flex(
-                    rx.input(
-                        value=State.ai_prompt,
-                        on_change=State.set_ai_prompt,
-                        placeholder="Ask AI to generate diagram code or notes...",
-                        variant="surface",
-                        flex="1",
-                    ),
-                    rx.button(
-                        "Generate",
-                        on_click=State.generate_diagram,
-                        is_loading=State.is_loading,
-                        variant="soft",
-                        padding_x="6",
-                    ),
-                    spacing="3",
-                    width="100%",
-                ),
-                spacing="4",
-                width="100%",
             ),
             rx.divider(),
             rx.vstack(

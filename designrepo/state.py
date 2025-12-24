@@ -56,6 +56,12 @@ class State(rx.State):
     # OpenAI
     ai_prompt: str = ""
     is_loading: bool = False
+    show_ai_modal: bool = False
+
+    def toggle_ai_modal(self):
+        self.show_ai_modal = not self.show_ai_modal
+        if not self.show_ai_modal:
+            self.ai_prompt = ""
 
     def set_project_name(self, value: str):
         self.project_name = value
@@ -267,18 +273,30 @@ class State(rx.State):
         if not self.ai_prompt:
             return
         self.is_loading = True
+        self.show_ai_modal = False
         yield
 
         try:
             client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+            system_msg = f"Generate or modify {self.diagram_type} code based on the user instruction. "
+            if self.diagram_type == "plantuml":
+                system_msg += "Only return the code block without backticks."
+            else:
+                system_msg += "Return the code block with backticks."
+
+            user_content = f"Instruction: {self.ai_prompt}\n"
+            if self.diagram_content:
+                user_content += f"Current Diagram Code:\n{self.diagram_content}"
+
             response = await client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {
                         "role": "system",
-                        "content": f"Generate {self.diagram_type} code for the following requirement. Only return the code block without backticks if it is for PlantUML, or with backticks if it is for Mermaid.",
+                        "content": system_msg,
                     },
-                    {"role": "user", "content": self.ai_prompt},
+                    {"role": "user", "content": user_content},
                 ],
             )
             content = response.choices[0].message.content
@@ -286,6 +304,7 @@ class State(rx.State):
             if content.startswith("```"):
                 content = "\n".join(content.split("\n")[1:-1])
             self.diagram_content = content
+            self.ai_prompt = ""
         except Exception as e:
             yield rx.toast.error(f"Error generating diagram: {str(e)}")
         finally:
