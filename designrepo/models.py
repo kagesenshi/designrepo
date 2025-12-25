@@ -37,6 +37,8 @@ class Diagram(rx.Model, table=True):
     diagram_type: str  # "plantuml", "mermaid", "drawio"
     category: str  # "as-is", "to-be"
     notes: str = ""  # Markdown notes
+    last_ai_prompt: str = ""
+    last_ai_notes_prompt: str = ""
     order_index: int = Field(default=0)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz=pendulum.local_timezone()),

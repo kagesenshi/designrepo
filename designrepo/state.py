@@ -27,6 +27,8 @@ class DiagramSchema(pydantic.BaseModel):
     diagram_type: str = "plantuml"
     category: str = "to-be"
     notes: str = ""
+    last_ai_prompt: str = ""
+    last_ai_notes_prompt: str = ""
     order_index: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -72,13 +74,9 @@ class State(rx.State):
 
     def toggle_ai_modal(self):
         self.show_ai_modal = not self.show_ai_modal
-        if not self.show_ai_modal:
-            self.ai_prompt = ""
 
     def toggle_ai_notes_modal(self):
         self.show_ai_notes_modal = not self.show_ai_notes_modal
-        if not self.show_ai_notes_modal:
-            self.ai_notes_prompt = ""
 
     def set_repository_name(self, value: str):
         self.repository_name = value
@@ -238,6 +236,8 @@ class State(rx.State):
                     diagram_type=d.diagram_type,
                     category=d.category,
                     notes=d.notes,
+                    last_ai_prompt=d.last_ai_prompt,
+                    last_ai_notes_prompt=d.last_ai_notes_prompt,
                     order_index=d.order_index,
                     created_at=d.created_at,
                     updated_at=d.updated_at,
@@ -298,6 +298,8 @@ class State(rx.State):
         self.diagram_content = diagram.content
         self.diagram_type = diagram.diagram_type
         self.diagram_notes = diagram.notes
+        self.ai_prompt = diagram.last_ai_prompt
+        self.ai_notes_prompt = diagram.last_ai_notes_prompt
 
     def edit_diagram(self, diagram: DiagramSchema):
         self.select_diagram(diagram)
@@ -336,6 +338,8 @@ class State(rx.State):
             diagram.diagram_type = self.diagram_type
             diagram.category = self.diagram_category
             diagram.notes = self.diagram_notes
+            diagram.last_ai_prompt = self.ai_prompt
+            diagram.last_ai_notes_prompt = self.ai_notes_prompt
             diagram.updated_at = datetime.now(tz=pendulum.local_timezone())
             session.add(diagram)
             session.commit()
@@ -350,6 +354,8 @@ class State(rx.State):
                 diagram_type=diagram.diagram_type,
                 category=diagram.category,
                 notes=diagram.notes,
+                last_ai_prompt=diagram.last_ai_prompt,
+                last_ai_notes_prompt=diagram.last_ai_notes_prompt,
                 created_at=diagram.created_at,
                 updated_at=diagram.updated_at,
             )
@@ -391,7 +397,7 @@ class State(rx.State):
             if content.startswith("```"):
                 content = "\n".join(content.split("\n")[1:-1])
             self.diagram_content = content
-            self.ai_prompt = ""
+            # Prompt is preserved for next time as per user request
         except Exception as e:
             yield rx.toast.error(f"Error generating diagram: {str(e)}")
         finally:
@@ -427,7 +433,7 @@ class State(rx.State):
                 ],
             )
             self.diagram_notes = response.choices[0].message.content
-            self.ai_notes_prompt = ""
+            # Prompt is preserved for next time as per user request
         except Exception as e:
             yield rx.toast.error(f"Error generating notes: {str(e)}")
         finally:

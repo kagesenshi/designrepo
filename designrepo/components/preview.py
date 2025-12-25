@@ -31,7 +31,7 @@ def preview():
             rx.flex(
                 rx.hstack(
                     rx.icon("eye", size=18, color=rx.color("gray", 9)),
-                    rx.heading("Preview", size="5", weight="bold"),
+                    rx.heading(State.diagram_name, size="5", weight="bold"),
                     align_items="center",
                     spacing="2",
                 ),
@@ -77,7 +77,10 @@ def preview():
                 padding_top="4",
                 padding_bottom="4",
             ),
-            rx.divider(),
+            rx.cond(
+                State.diagram_content,
+                rx.divider(),
+            ),
             rx.box(
                 rx.markdown(State.diagram_notes),
                 width="100%",
