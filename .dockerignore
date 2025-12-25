@@ -1,0 +1,13 @@
+.venv
+__pycache__
+.web
+.states
+reflex.db
+*.pyc
+.git
+.gitignore
+.agent
+alembic
+uploaded_files
+node_modules
+/home/izhar/.gemini
