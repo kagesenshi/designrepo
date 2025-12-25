@@ -216,6 +216,7 @@ class State(rx.State):
 
     async def select_repository(self, repository: RepositorySchema):
         self.current_repository = repository
+        self.current_diagram = None
         await self.load_diagrams()
 
     async def load_diagrams(self):
@@ -285,6 +286,7 @@ class State(rx.State):
             session.commit()
             await self.load_diagrams()
             self.new_diagram_name = ""
+            self.current_diagram = None
             self.show_diagram_modal = False
 
     is_editing: bool = False
