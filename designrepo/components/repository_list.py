@@ -30,8 +30,8 @@ def repository_list():
                         ),
                         rx.input(
                             placeholder="Enter repository name",
-                            value=State.repository_name,
-                            on_change=State.set_repository_name,
+                            value=State.new_repository_name,
+                            on_change=State.set_new_repository_name,
                             variant="surface",
                             width="100%",
                         ),
@@ -42,8 +42,8 @@ def repository_list():
                         ),
                         rx.input(
                             placeholder="Enter description",
-                            value=State.repository_description,
-                            on_change=State.set_repository_description,
+                            value=State.new_repository_description,
+                            on_change=State.set_new_repository_description,
                             variant="surface",
                             width="100%",
                         ),

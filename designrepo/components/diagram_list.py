@@ -30,8 +30,8 @@ def diagram_list():
                         ),
                         rx.input(
                             placeholder="Enter diagram name",
-                            value=State.diagram_name,
-                            on_change=State.set_diagram_name,
+                            value=State.new_diagram_name,
+                            on_change=State.set_new_diagram_name,
                             variant="surface",
                             width="100%",
                         ),

@@ -51,6 +51,11 @@ class State(rx.State):
     diagram_category: str = "to-be"
     diagram_notes: str = ""
 
+    # Creation form fields
+    new_repository_name: str = ""
+    new_repository_description: str = ""
+    new_diagram_name: str = ""
+
     # Modal visibility
     show_repository_modal: bool = False
     show_diagram_modal: bool = False
@@ -79,8 +84,17 @@ class State(rx.State):
     def set_repository_description(self, value: str):
         self.repository_description = value
 
+    def set_new_repository_name(self, value: str):
+        self.new_repository_name = value
+
+    def set_new_repository_description(self, value: str):
+        self.new_repository_description = value
+
     def set_diagram_name(self, value: str):
         self.diagram_name = value
+
+    def set_new_diagram_name(self, value: str):
+        self.new_diagram_name = value
 
     def set_diagram_content(self, value: str):
         self.diagram_content = value
@@ -105,9 +119,14 @@ class State(rx.State):
 
     def set_show_repository_modal(self, value: bool):
         self.show_repository_modal = value
+        if value:
+            self.new_repository_name = ""
+            self.new_repository_description = ""
 
     def set_show_diagram_modal(self, value: bool):
         self.show_diagram_modal = value
+        if value:
+            self.new_diagram_name = ""
 
     def set_show_ai_modal(self, value: bool):
         self.show_ai_modal = value
@@ -161,27 +180,28 @@ class State(rx.State):
             ]
 
     async def add_repository(self):
-        if not self.repository_name:
+        if not self.new_repository_name:
             return rx.toast.error("Repository name is required")
         with rx.session() as session:
             # Check for duplicate repository name
             existing = session.exec(
-                Repository.select().where(Repository.name == self.repository_name)
+                Repository.select().where(Repository.name == self.new_repository_name)
             ).first()
             if existing:
                 return rx.toast.error(
-                    f"Repository '{self.repository_name}' already exists."
+                    f"Repository '{self.new_repository_name}' already exists."
                 )
 
             repository = Repository(
-                name=self.repository_name, description=self.repository_description
+                name=self.new_repository_name,
+                description=self.new_repository_description,
             )
             session.add(repository)
             session.commit()
             session.refresh(repository)
             await self.load_repositories()
-            self.repository_name = ""
-            self.repository_description = ""
+            self.new_repository_name = ""
+            self.new_repository_description = ""
             self.show_repository_modal = False
 
     async def select_repository(self, repository: RepositorySchema):
@@ -215,7 +235,7 @@ class State(rx.State):
     async def add_diagram(self):
         if not self.current_repository:
             return
-        if not self.diagram_name:
+        if not self.new_diagram_name:
             return rx.toast.error("Diagram name is required")
 
         with rx.session() as session:
@@ -223,28 +243,26 @@ class State(rx.State):
             existing = session.exec(
                 Diagram.select().where(
                     (Diagram.repository_id == self.current_repository.id)
-                    & (Diagram.name == self.diagram_name)
+                    & (Diagram.name == self.new_diagram_name)
                 )
             ).first()
             if existing:
                 return rx.toast.error(
-                    f"Diagram '{self.diagram_name}' already exists in this repository."
+                    f"Diagram '{self.new_diagram_name}' already exists in this repository."
                 )
 
             diagram = Diagram(
                 repository_id=self.current_repository.id,
-                name=self.diagram_name,
-                content=self.diagram_content,
-                diagram_type=self.diagram_type,
-                category=self.diagram_category,
-                notes=self.diagram_notes,
+                name=self.new_diagram_name,
+                content="",  # Default empty
+                diagram_type="plantuml",  # Default
+                category="to-be",  # Default
+                notes="",  # Default empty
             )
             session.add(diagram)
             session.commit()
             await self.load_diagrams()
-            self.diagram_name = ""
-            self.diagram_content = ""
-            self.diagram_notes = ""
+            self.new_diagram_name = ""
             self.show_diagram_modal = False
 
     is_editing: bool = False
