@@ -1,14 +1,17 @@
 import reflex as rx
-from .models import Repository, Diagram
+import hashlib
 from typing import List, Optional
 import openai
-import os
 from datetime import datetime
 import urllib.parse
 import zlib
 import base64
 import pendulum
 import pydantic
+from .models import Repository, Diagram, User
+import httpx
+from authlib.integrations.httpx_client import AsyncOAuth2Client
+import os
 
 
 class RepositorySchema(pydantic.BaseModel):
@@ -34,6 +37,22 @@ class DiagramSchema(pydantic.BaseModel):
     updated_at: Optional[datetime] = None
 
 
+class UserSchema(pydantic.BaseModel):
+    id: Optional[int] = None
+    sub: str = ""
+    email: str = ""
+    name: str = ""
+    picture: str = ""
+
+    @pydantic.computed_field
+    @property
+    def gravatar_url(self) -> str:
+        if not self.email:
+            return ""
+        email_hash = hashlib.md5(self.email.lower().strip().encode()).hexdigest()
+        return f"https://www.gravatar.com/avatar/{email_hash}?d=identicon"
+
+
 class State(rx.State):
     """The base state for the app."""
 
@@ -44,6 +63,103 @@ class State(rx.State):
 
     diagrams: List[DiagramSchema] = []
     current_diagram: Optional[DiagramSchema] = None
+
+    user: Optional[UserSchema] = None
+    oidc_user_sub: str = rx.Cookie("", name="oidc_user_sub")
+    oidc_state_cookie: str = rx.Cookie("", name="oidc_state")
+
+    async def get_oidc_config(self):
+        issuer = os.environ.get("OIDC_ISSUER")
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{issuer}/.well-known/openid-configuration")
+            return resp.json()
+
+    async def login(self):
+        config = await self.get_oidc_config()
+        client = AsyncOAuth2Client(
+            client_id=os.environ.get("OIDC_CLIENT_ID"),
+            client_secret=os.environ.get("OIDC_CLIENT_SECRET"),
+            scope="openid email profile",
+            redirect_uri=self.router.url,
+        )
+        uri, state = client.create_authorization_url(config["authorization_endpoint"])
+        self.oidc_state_cookie = state
+        return rx.redirect(uri)
+
+    async def handle_callback(self, code, state):
+        if state != self.oidc_state_cookie:
+            return rx.toast.error("Invalid OIDC state")
+
+        config = await self.get_oidc_config()
+        async with httpx.AsyncClient() as client:
+            # Token exchange
+            resp = await client.post(
+                config["token_endpoint"],
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": "http://localhost:3000/",
+                    "client_id": os.environ.get("OIDC_CLIENT_ID"),
+                    "client_secret": os.environ.get("OIDC_CLIENT_SECRET"),
+                },
+            )
+            token = resp.json()
+            access_token = token.get("access_token")
+
+            # User info
+            resp = await client.get(
+                config["userinfo_endpoint"],
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            user_info = resp.json()
+
+            sub = user_info["sub"]
+            email = user_info.get("email", "")
+            name = user_info.get("name", "")
+            picture = user_info.get("picture", "")
+
+            with rx.session() as session:
+                user = session.exec(User.select().where(User.sub == sub)).first()
+                if not user:
+                    user = User(sub=sub, email=email, name=name, picture=picture)
+                    session.add(user)
+                else:
+                    user.email = email
+                    user.name = name
+                    user.picture = picture
+                session.commit()
+
+            self.oidc_user_sub = sub
+            self.user = UserSchema(sub=sub, email=email, name=name, picture=picture)
+
+    async def on_load(self):
+        """Called when the page loads."""
+        code = self.router_data.get("query", {}).get("code")
+        state = self.router_data.get("query", {}).get("state")
+
+        if code:
+            await self.handle_callback(code, state)
+            return rx.redirect("/")
+
+        if self.oidc_user_sub:
+            with rx.session() as session:
+                user = session.exec(
+                    User.select().where(User.sub == self.oidc_user_sub)
+                ).first()
+                if user:
+                    self.user = UserSchema(
+                        id=user.id,
+                        sub=user.sub,
+                        email=user.email,
+                        name=user.name,
+                        picture=user.picture,
+                    )
+        await self.load_repositories()
+
+    def logout(self):
+        self.user = None
+        self.oidc_user_sub = ""
+        return rx.redirect("/")
 
     # Form fields
     repository_name: str = ""

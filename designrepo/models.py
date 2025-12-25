@@ -14,6 +14,19 @@ def serialize_datetime(value: datetime) -> str:
     return value.isoformat()
 
 
+class User(rx.Model, table=True):
+    """User model for OIDC authentication."""
+
+    sub: str = Field(unique=True, index=True)
+    email: str = Field(index=True)
+    name: str = ""
+    picture: str = ""
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(tz=pendulum.local_timezone()),
+        sa_column=Column(DateTime(timezone=True)),
+    )
+
+
 class Repository(rx.Model, table=True):
     """A list of repositories to manage."""
 
