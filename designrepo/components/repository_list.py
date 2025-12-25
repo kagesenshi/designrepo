@@ -83,6 +83,26 @@ def repository_list():
                     rx.hstack(
                         rx.icon("folder", size=16),
                         rx.text(repository.name),
+                        rx.spacer(),
+                        rx.hstack(
+                            rx.icon_button(
+                                rx.icon("chevron-up"),
+                                size="1",
+                                variant="ghost",
+                                on_click=State.move_repository_up(
+                                    repository.id
+                                ).stop_propagation,
+                            ),
+                            rx.icon_button(
+                                rx.icon("chevron-down"),
+                                size="1",
+                                variant="ghost",
+                                on_click=State.move_repository_down(
+                                    repository.id
+                                ).stop_propagation,
+                            ),
+                            spacing="1",
+                        ),
                         width="100%",
                         align_items="center",
                         spacing="3",

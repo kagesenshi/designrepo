@@ -19,6 +19,7 @@ class Repository(rx.Model, table=True):
 
     name: str
     description: str
+    order_index: int = Field(default=0)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz=pendulum.local_timezone()),
         sa_column=Column(DateTime(timezone=True)),
@@ -36,6 +37,7 @@ class Diagram(rx.Model, table=True):
     diagram_type: str  # "plantuml", "mermaid", "drawio"
     category: str  # "as-is", "to-be"
     notes: str = ""  # Markdown notes
+    order_index: int = Field(default=0)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(tz=pendulum.local_timezone()),
         sa_column=Column(DateTime(timezone=True)),

@@ -15,6 +15,7 @@ class RepositorySchema(pydantic.BaseModel):
     id: Optional[int] = None
     name: str = ""
     description: str = ""
+    order_index: int = 0
     created_at: Optional[datetime] = None
 
 
@@ -26,6 +27,7 @@ class DiagramSchema(pydantic.BaseModel):
     diagram_type: str = "plantuml"
     category: str = "to-be"
     notes: str = ""
+    order_index: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -168,12 +170,15 @@ class State(rx.State):
 
     async def load_repositories(self):
         with rx.session() as session:
-            db_repositories = session.exec(Repository.select()).all()
+            db_repositories = session.exec(
+                Repository.select().order_by(Repository.order_index)
+            ).all()
             self.repositories = [
                 RepositorySchema(
                     id=p.id,
                     name=p.name,
                     description=p.description,
+                    order_index=p.order_index,
                     created_at=p.created_at,
                 )
                 for p in db_repositories
@@ -192,9 +197,16 @@ class State(rx.State):
                     f"Repository '{self.new_repository_name}' already exists."
                 )
 
+            # Get max order_index
+            max_order = session.exec(
+                Repository.select().order_by(Repository.order_index.desc())
+            ).first()
+            new_order = (max_order.order_index + 1) if max_order else 0
+
             repository = Repository(
                 name=self.new_repository_name,
                 description=self.new_repository_description,
+                order_index=new_order,
             )
             session.add(repository)
             session.commit()
@@ -213,9 +225,9 @@ class State(rx.State):
             return
         with rx.session() as session:
             db_diagrams = session.exec(
-                Diagram.select().where(
-                    Diagram.repository_id == self.current_repository.id
-                )
+                Diagram.select()
+                .where(Diagram.repository_id == self.current_repository.id)
+                .order_by(Diagram.order_index)
             ).all()
             self.diagrams = [
                 DiagramSchema(
@@ -226,6 +238,7 @@ class State(rx.State):
                     diagram_type=d.diagram_type,
                     category=d.category,
                     notes=d.notes,
+                    order_index=d.order_index,
                     created_at=d.created_at,
                     updated_at=d.updated_at,
                 )
@@ -251,6 +264,14 @@ class State(rx.State):
                     f"Diagram '{self.new_diagram_name}' already exists in this repository."
                 )
 
+            # Get max order_index for this repository
+            max_order = session.exec(
+                Diagram.select()
+                .where(Diagram.repository_id == self.current_repository.id)
+                .order_by(Diagram.order_index.desc())
+            ).first()
+            new_order = (max_order.order_index + 1) if max_order else 0
+
             diagram = Diagram(
                 repository_id=self.current_repository.id,
                 name=self.new_diagram_name,
@@ -258,6 +279,7 @@ class State(rx.State):
                 diagram_type="plantuml",  # Default
                 category="to-be",  # Default
                 notes="",  # Default empty
+                order_index=new_order,
             )
             session.add(diagram)
             session.commit()
@@ -421,3 +443,113 @@ class State(rx.State):
             self.diagram_type = "drawio"
             if not self.diagram_name:
                 self.diagram_name = file.filename
+
+    async def move_repository_up(self, repo_id: int):
+        with rx.session() as session:
+            current = session.exec(
+                Repository.select().where(Repository.id == repo_id)
+            ).first()
+            if not current:
+                return
+
+            # Find the item just before this one
+            previous = session.exec(
+                Repository.select()
+                .where(Repository.order_index < current.order_index)
+                .order_by(Repository.order_index.desc())
+            ).first()
+
+            if previous:
+                # Swap order indices
+                current.order_index, previous.order_index = (
+                    previous.order_index,
+                    current.order_index,
+                )
+                session.add(current)
+                session.add(previous)
+                session.commit()
+                await self.load_repositories()
+
+    async def move_repository_down(self, repo_id: int):
+        with rx.session() as session:
+            current = session.exec(
+                Repository.select().where(Repository.id == repo_id)
+            ).first()
+            if not current:
+                return
+
+            # Find the item just after this one
+            next_repo = session.exec(
+                Repository.select()
+                .where(Repository.order_index > current.order_index)
+                .order_by(Repository.order_index.asc())
+            ).first()
+
+            if next_repo:
+                # Swap order indices
+                current.order_index, next_repo.order_index = (
+                    next_repo.order_index,
+                    current.order_index,
+                )
+                session.add(current)
+                session.add(next_repo)
+                session.commit()
+                await self.load_repositories()
+
+    async def move_diagram_up(self, diag_id: int):
+        with rx.session() as session:
+            current = session.exec(
+                Diagram.select().where(Diagram.id == diag_id)
+            ).first()
+            if not current:
+                return
+
+            # Find the item just before this one in the same repository
+            previous = session.exec(
+                Diagram.select()
+                .where(
+                    (Diagram.repository_id == current.repository_id)
+                    & (Diagram.order_index < current.order_index)
+                )
+                .order_by(Diagram.order_index.desc())
+            ).first()
+
+            if previous:
+                # Swap order indices
+                current.order_index, previous.order_index = (
+                    previous.order_index,
+                    current.order_index,
+                )
+                session.add(current)
+                session.add(previous)
+                session.commit()
+                await self.load_diagrams()
+
+    async def move_diagram_down(self, diag_id: int):
+        with rx.session() as session:
+            current = session.exec(
+                Diagram.select().where(Diagram.id == diag_id)
+            ).first()
+            if not current:
+                return
+
+            # Find the item just after this one in the same repository
+            next_diag = session.exec(
+                Diagram.select()
+                .where(
+                    (Diagram.repository_id == current.repository_id)
+                    & (Diagram.order_index > current.order_index)
+                )
+                .order_by(Diagram.order_index.asc())
+            ).first()
+
+            if next_diag:
+                # Swap order indices
+                current.order_index, next_diag.order_index = (
+                    next_diag.order_index,
+                    current.order_index,
+                )
+                session.add(current)
+                session.add(next_diag)
+                session.commit()
+                await self.load_diagrams()

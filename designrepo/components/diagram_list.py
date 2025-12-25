@@ -71,6 +71,25 @@ def diagram_list():
                     rx.hstack(
                         rx.text(diagram.name, size="2", weight="medium"),
                         rx.spacer(),
+                        rx.hstack(
+                            rx.icon_button(
+                                rx.icon("chevron-up"),
+                                size="1",
+                                variant="ghost",
+                                on_click=State.move_diagram_up(
+                                    diagram.id
+                                ).stop_propagation,
+                            ),
+                            rx.icon_button(
+                                rx.icon("chevron-down"),
+                                size="1",
+                                variant="ghost",
+                                on_click=State.move_diagram_down(
+                                    diagram.id
+                                ).stop_propagation,
+                            ),
+                            spacing="1",
+                        ),
                         rx.badge(
                             diagram.category,
                             color_scheme=rx.cond(
