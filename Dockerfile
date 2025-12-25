@@ -1,9 +1,6 @@
 # Base stage for common dependencies
 FROM python:3.13-slim-bookworm AS base
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-
 # Set working directory
 WORKDIR /app
 
@@ -11,7 +8,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies using uv
-RUN uv sync --frozen --no-cache
+RUN pip install uv && uv sync --frozen --no-cache
 
 # --- Backend Stage ---
 FROM base AS backend
