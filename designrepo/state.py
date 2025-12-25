@@ -147,7 +147,7 @@ class State(rx.State):
         except:
             return ""
 
-    def load_projects(self):
+    async def load_projects(self):
         with rx.session() as session:
             db_projects = session.exec(Project.select()).all()
             self.projects = [
@@ -160,7 +160,7 @@ class State(rx.State):
                 for p in db_projects
             ]
 
-    def add_project(self):
+    async def add_project(self):
         if not self.project_name:
             return rx.toast.error("Project name is required")
         with rx.session() as session:
@@ -177,16 +177,16 @@ class State(rx.State):
             session.add(project)
             session.commit()
             session.refresh(project)
-            self.load_projects()
+            await self.load_projects()
             self.project_name = ""
             self.project_description = ""
             self.show_project_modal = False
 
-    def select_project(self, project: ProjectSchema):
+    async def select_project(self, project: ProjectSchema):
         self.current_project = project
-        self.load_diagrams()
+        await self.load_diagrams()
 
-    def load_diagrams(self):
+    async def load_diagrams(self):
         if not self.current_project:
             return
         with rx.session() as session:
@@ -208,7 +208,7 @@ class State(rx.State):
                 for d in db_diagrams
             ]
 
-    def add_diagram(self):
+    async def add_diagram(self):
         if not self.current_project:
             return
         if not self.diagram_name:
@@ -237,21 +237,34 @@ class State(rx.State):
             )
             session.add(diagram)
             session.commit()
-            self.load_diagrams()
+            await self.load_diagrams()
             self.diagram_name = ""
             self.diagram_content = ""
             self.diagram_notes = ""
             self.show_diagram_modal = False
+
+    is_editing: bool = False
+
+    def set_is_editing(self, value: bool):
+        self.is_editing = value
 
     def select_diagram(self, diagram: DiagramSchema):
         self.current_diagram = diagram
         self.diagram_name = diagram.name
         self.diagram_content = diagram.content
         self.diagram_type = diagram.diagram_type
-        self.diagram_category = diagram.category
         self.diagram_notes = diagram.notes
 
-    def save_diagram(self):
+    def edit_diagram(self, diagram: DiagramSchema):
+        self.select_diagram(diagram)
+        self.is_editing = True
+
+    def show_diagram(self, diagram: DiagramSchema):
+        self.is_editing = False
+        self.select_diagram(diagram)
+        pass
+
+    async def save_diagram(self):
         if not self.current_diagram:
             return
         if not self.diagram_name:
@@ -283,7 +296,7 @@ class State(rx.State):
             session.add(diagram)
             session.commit()
             session.refresh(diagram)
-            self.load_diagrams()
+            await self.load_diagrams()
             # Update current diagram in state to reflect changes
             self.current_diagram = DiagramSchema(
                 id=diagram.id,

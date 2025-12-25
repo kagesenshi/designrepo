@@ -36,6 +36,13 @@ def preview():
                     spacing="2",
                 ),
                 rx.spacer(),
+                rx.icon_button(
+                    rx.icon("pencil", size=24),
+                    on_click=lambda: State.edit_diagram(State.current_diagram),
+                    variant="solid",
+                    size="2",
+                    color_scheme="indigo",
+                ),
                 width="100%",
                 padding_bottom="6",
             ),

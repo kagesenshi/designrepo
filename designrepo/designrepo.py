@@ -53,20 +53,28 @@ def index() -> rx.Component:
                         rx.box(
                             rx.cond(
                                 State.current_diagram,
-                                rx.flex(
-                                    rx.box(
-                                        diagram_editor(),
-                                        flex="1",
-                                        padding_right="2",
+                                rx.cond(
+                                    State.is_editing,
+                                    rx.flex(
+                                        rx.box(
+                                            diagram_editor(),
+                                            flex="1",
+                                            padding_right="2",
+                                        ),
+                                        rx.box(
+                                            preview(),
+                                            flex="1",
+                                            padding_left="2",
+                                        ),
+                                        width="100%",
+                                        direction={"sm": "column", "md": "row"},
+                                        spacing="6",
                                     ),
                                     rx.box(
                                         preview(),
                                         flex="1",
-                                        padding_left="2",
+                                        width="100%",
                                     ),
-                                    width="100%",
-                                    direction={"sm": "column", "md": "row"},
-                                    spacing="6",
                                 ),
                                 rx.center(
                                     rx.vstack(

@@ -83,7 +83,7 @@ def diagram_list():
                         align_items="center",
                         spacing="3",
                     ),
-                    on_click=lambda: State.select_diagram(diagram),
+                    on_click=lambda: State.show_diagram(diagram),
                     background_color=rx.cond(
                         State.current_diagram.name == diagram.name,
                         rx.color("indigo", 3),

@@ -11,5 +11,6 @@ This project following technologies:
 * frontend framework: reflex.dev
 * backend framework: fastapi
 * database: postgresql
+* i/o pattern: prefer asyncio
 
 always use `uv run reflex` to run reflex
