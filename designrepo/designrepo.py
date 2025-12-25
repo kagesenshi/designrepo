@@ -1,6 +1,6 @@
 import reflex as rx
 from .state import State
-from .components.project_list import project_list
+from .components.repository_list import repository_list
 from .components.diagram_list import diagram_list
 from .components.diagram_editor import diagram_editor
 from .components.preview import preview
@@ -9,7 +9,7 @@ from .components.preview import preview
 def index() -> rx.Component:
     return rx.flex(
         rx.box(
-            project_list(),
+            repository_list(),
             flex="1",
             height="100vh",
             border_right=f"1px solid {rx.color('gray', 4)}",
@@ -18,15 +18,15 @@ def index() -> rx.Component:
         ),
         rx.box(
             rx.cond(
-                State.current_project,
+                State.current_repository,
                 rx.vstack(
                     rx.flex(
                         rx.vstack(
                             rx.heading(
-                                State.current_project.name, size="8", weight="bold"
+                                State.current_repository.name, size="8", weight="bold"
                             ),
                             rx.text(
-                                State.current_project.description,
+                                State.current_repository.description,
                                 color_scheme="gray",
                                 size="2",
                             ),
@@ -38,8 +38,8 @@ def index() -> rx.Component:
                         rx.spacer(),
                         rx.button(
                             rx.icon("refresh-cw"),
-                            "Refresh Projects",
-                            on_click=State.load_projects,
+                            "Refresh Repositories",
+                            on_click=State.load_repositories,
                             variant="soft",
                             size="2",
                         ),
@@ -109,13 +109,13 @@ def index() -> rx.Component:
                     rx.vstack(
                         rx.heading("Requirement Management", size="9", weight="bold"),
                         rx.text(
-                            "Select a project from the sidebar to manage diagrams and requirements.",
+                            "Select a repository from the sidebar to manage diagrams and requirements.",
                             size="4",
                             color_scheme="gray",
                         ),
                         rx.button(
                             "Get Started",
-                            on_click=State.load_projects,
+                            on_click=State.load_repositories,
                             size="3",
                             variant="solid",
                         ),
@@ -144,4 +144,4 @@ app = rx.App(
         radius="medium",
     ),
 )
-app.add_page(index, on_load=State.load_projects)
+app.add_page(index, on_load=State.load_repositories)

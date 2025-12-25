@@ -14,8 +14,8 @@ def serialize_datetime(value: datetime) -> str:
     return value.isoformat()
 
 
-class Project(rx.Model, table=True):
-    """A list of projects to manage."""
+class Repository(rx.Model, table=True):
+    """A list of repositories to manage."""
 
     name: str
     description: str
@@ -24,13 +24,13 @@ class Project(rx.Model, table=True):
         sa_column=Column(DateTime(timezone=True)),
     )
 
-    __table_args__ = (UniqueConstraint("name", name="unique_project_name"),)
+    __table_args__ = (UniqueConstraint("name", name="unique_repository_name"),)
 
 
 class Diagram(rx.Model, table=True):
-    """Diagrams associated with a project."""
+    """Diagrams associated with a repository."""
 
-    project_id: int
+    repository_id: int
     name: str
     content: str  # Code for PlantUML/Mermaid or Base64 for Draw.io
     diagram_type: str  # "plantuml", "mermaid", "drawio"
@@ -46,5 +46,5 @@ class Diagram(rx.Model, table=True):
     )
 
     __table_args__ = (
-        UniqueConstraint("project_id", "name", name="unique_diagram_per_project"),
+        UniqueConstraint("repository_id", "name", name="unique_diagram_per_repository"),
     )

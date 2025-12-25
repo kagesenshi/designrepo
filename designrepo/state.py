@@ -1,5 +1,5 @@
 import reflex as rx
-from .models import Project, Diagram
+from .models import Repository, Diagram
 from typing import List, Optional
 import openai
 import os
@@ -11,7 +11,7 @@ import pendulum
 import pydantic
 
 
-class ProjectSchema(pydantic.BaseModel):
+class RepositorySchema(pydantic.BaseModel):
     id: Optional[int] = None
     name: str = ""
     description: str = ""
@@ -20,7 +20,7 @@ class ProjectSchema(pydantic.BaseModel):
 
 class DiagramSchema(pydantic.BaseModel):
     id: Optional[int] = None
-    project_id: Optional[int] = None
+    repository_id: Optional[int] = None
     name: str = ""
     content: str = ""
     diagram_type: str = "plantuml"
@@ -35,15 +35,15 @@ class State(rx.State):
 
     state_auto_setters = False
 
-    projects: List[ProjectSchema] = []
-    current_project: Optional[ProjectSchema] = None
+    repositories: List[RepositorySchema] = []
+    current_repository: Optional[RepositorySchema] = None
 
     diagrams: List[DiagramSchema] = []
     current_diagram: Optional[DiagramSchema] = None
 
     # Form fields
-    project_name: str = ""
-    project_description: str = ""
+    repository_name: str = ""
+    repository_description: str = ""
 
     diagram_name: str = ""
     diagram_content: str = ""
@@ -52,7 +52,7 @@ class State(rx.State):
     diagram_notes: str = ""
 
     # Modal visibility
-    show_project_modal: bool = False
+    show_repository_modal: bool = False
     show_diagram_modal: bool = False
 
     # OpenAI
@@ -73,11 +73,11 @@ class State(rx.State):
         if not self.show_ai_notes_modal:
             self.ai_notes_prompt = ""
 
-    def set_project_name(self, value: str):
-        self.project_name = value
+    def set_repository_name(self, value: str):
+        self.repository_name = value
 
-    def set_project_description(self, value: str):
-        self.project_description = value
+    def set_repository_description(self, value: str):
+        self.repository_description = value
 
     def set_diagram_name(self, value: str):
         self.diagram_name = value
@@ -103,8 +103,8 @@ class State(rx.State):
     def set_refer_to_diagram(self, value: bool):
         self.refer_to_diagram = value
 
-    def set_show_project_modal(self, value: bool):
-        self.show_project_modal = value
+    def set_show_repository_modal(self, value: bool):
+        self.show_repository_modal = value
 
     def set_show_diagram_modal(self, value: bool):
         self.show_diagram_modal = value
@@ -147,56 +147,60 @@ class State(rx.State):
         except:
             return ""
 
-    async def load_projects(self):
+    async def load_repositories(self):
         with rx.session() as session:
-            db_projects = session.exec(Project.select()).all()
-            self.projects = [
-                ProjectSchema(
+            db_repositories = session.exec(Repository.select()).all()
+            self.repositories = [
+                RepositorySchema(
                     id=p.id,
                     name=p.name,
                     description=p.description,
                     created_at=p.created_at,
                 )
-                for p in db_projects
+                for p in db_repositories
             ]
 
-    async def add_project(self):
-        if not self.project_name:
-            return rx.toast.error("Project name is required")
+    async def add_repository(self):
+        if not self.repository_name:
+            return rx.toast.error("Repository name is required")
         with rx.session() as session:
-            # Check for duplicate project name
+            # Check for duplicate repository name
             existing = session.exec(
-                Project.select().where(Project.name == self.project_name)
+                Repository.select().where(Repository.name == self.repository_name)
             ).first()
             if existing:
-                return rx.toast.error(f"Project '{self.project_name}' already exists.")
+                return rx.toast.error(
+                    f"Repository '{self.repository_name}' already exists."
+                )
 
-            project = Project(
-                name=self.project_name, description=self.project_description
+            repository = Repository(
+                name=self.repository_name, description=self.repository_description
             )
-            session.add(project)
+            session.add(repository)
             session.commit()
-            session.refresh(project)
-            await self.load_projects()
-            self.project_name = ""
-            self.project_description = ""
-            self.show_project_modal = False
+            session.refresh(repository)
+            await self.load_repositories()
+            self.repository_name = ""
+            self.repository_description = ""
+            self.show_repository_modal = False
 
-    async def select_project(self, project: ProjectSchema):
-        self.current_project = project
+    async def select_repository(self, repository: RepositorySchema):
+        self.current_repository = repository
         await self.load_diagrams()
 
     async def load_diagrams(self):
-        if not self.current_project:
+        if not self.current_repository:
             return
         with rx.session() as session:
             db_diagrams = session.exec(
-                Diagram.select().where(Diagram.project_id == self.current_project.id)
+                Diagram.select().where(
+                    Diagram.repository_id == self.current_repository.id
+                )
             ).all()
             self.diagrams = [
                 DiagramSchema(
                     id=d.id,
-                    project_id=d.project_id,
+                    repository_id=d.repository_id,
                     name=d.name,
                     content=d.content,
                     diagram_type=d.diagram_type,
@@ -209,26 +213,26 @@ class State(rx.State):
             ]
 
     async def add_diagram(self):
-        if not self.current_project:
+        if not self.current_repository:
             return
         if not self.diagram_name:
             return rx.toast.error("Diagram name is required")
 
         with rx.session() as session:
-            # Check for duplicate diagram name in the same project
+            # Check for duplicate diagram name in the same repository
             existing = session.exec(
                 Diagram.select().where(
-                    (Diagram.project_id == self.current_project.id)
+                    (Diagram.repository_id == self.current_repository.id)
                     & (Diagram.name == self.diagram_name)
                 )
             ).first()
             if existing:
                 return rx.toast.error(
-                    f"Diagram '{self.diagram_name}' already exists in this project."
+                    f"Diagram '{self.diagram_name}' already exists in this repository."
                 )
 
             diagram = Diagram(
-                project_id=self.current_project.id,
+                repository_id=self.current_repository.id,
                 name=self.diagram_name,
                 content=self.diagram_content,
                 diagram_type=self.diagram_type,
@@ -274,14 +278,14 @@ class State(rx.State):
             # Check for duplicate diagram name (excluding the current one)
             existing = session.exec(
                 Diagram.select().where(
-                    (Diagram.project_id == self.current_diagram.project_id)
+                    (Diagram.repository_id == self.current_diagram.repository_id)
                     & (Diagram.name == self.diagram_name)
                     & (Diagram.id != self.current_diagram.id)
                 )
             ).first()
             if existing:
                 return rx.toast.error(
-                    f"Another diagram named '{self.diagram_name}' already exists in this project."
+                    f"Another diagram named '{self.diagram_name}' already exists in this repository."
                 )
 
             diagram = session.exec(
@@ -300,7 +304,7 @@ class State(rx.State):
             # Update current diagram in state to reflect changes
             self.current_diagram = DiagramSchema(
                 id=diagram.id,
-                project_id=diagram.project_id,
+                repository_id=diagram.repository_id,
                 name=diagram.name,
                 content=diagram.content,
                 diagram_type=diagram.diagram_type,
@@ -309,6 +313,8 @@ class State(rx.State):
                 created_at=diagram.created_at,
                 updated_at=diagram.updated_at,
             )
+
+            self.is_editing = False
 
     async def generate_diagram(self):
         if not self.ai_prompt:
