@@ -42,7 +42,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
-          buildkit-config-inline: |
+          buildkitd-config-inline: |
             [registry."docker.io"]
               mirrors = ["registry-1.kagesenshi.org"]
 
@@ -92,7 +92,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
-          buildkit-config-inline: |
+          buildkitd-config-inline: |
             [registry."docker.io"]
               mirrors = ["registry-1.kagesenshi.org"]
 
