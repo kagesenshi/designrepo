@@ -32,8 +32,8 @@ FROM base AS frontend-builder
 # Install Node.js (required for reflex export)
 RUN apt-get update && apt-get install -y curl unzip && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    curl -fsSL https://raw.githubusercontent.com/reflex-dev/reflex/main/scripts/bun_install.sh | bash && \
     apt-get install -y nodejs && \
+    curl -fsSL https://bun.com/install | bash && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
