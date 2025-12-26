@@ -10,6 +10,7 @@ jobs:
   build-backend:
     runs-on: designrepo-runners
     environment: HOMELAB
+    image: ubuntu:latest 
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -53,14 +54,15 @@ jobs:
           target: backend
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/designrepo-backend:latest
-            ghcr.io/${{ github.repository_owner }}/designrepo-backend:${{ github.sha }}
-          cache-from: type=registry,ref=registry.kagesenshi.org/designrepo-backend:cache
-          cache-to: type=registry,ref=registry.kagesenshi.org/designrepo-backend:cache,mode=max
+            ghcr.io/${{ github.repository_owner }}/designrepo/backend:latest
+            ghcr.io/${{ github.repository_owner }}/designrepo/backend:${{ github.sha }}
+          cache-from: type=registry,ref=registry.kagesenshi.org/designrepo/backend:cache
+          cache-to: type=registry,ref=registry.kagesenshi.org/designrepo/backend:cache,mode=max
 
   build-frontend:
     runs-on: designrepo-runners
     environment: HOMELAB
+    image: ubuntu:latest 
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -107,7 +109,7 @@ jobs:
             BACKEND_URL=http://localhost:8000
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/designrepo-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/designrepo-frontend:${{ github.sha }}
-          cache-from: type=registry,ref=registry.kagesenshi.org/designrepo-frontend:cache
-          cache-to: type=registry,ref=registry.kagesenshi.org/designrepo-frontend:cache,mode=max
+            ghcr.io/${{ github.repository_owner }}/designrepo/frontend:latest
+            ghcr.io/${{ github.repository_owner }}/designrepo/frontend:${{ github.sha }}
+          cache-from: type=registry,ref=registry.kagesenshi.org/designrepo/frontend:cache
+          cache-to: type=registry,ref=registry.kagesenshi.org/designrepo/frontend:cache,mode=max
