@@ -1,5 +1,5 @@
 # Base stage for common dependencies
-FROM python:3.13-slim-bookworm AS base
+FROM registry-1.kagesenshi.org/library/python:3.13-slim-bookworm AS base
 
 # Set working directory
 WORKDIR /app
