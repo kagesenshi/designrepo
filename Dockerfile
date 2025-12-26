@@ -58,7 +58,7 @@ RUN apk add --no-cache unzip
 COPY --from=frontend-builder /app/frontend.zip /tmp/frontend.zip
 
 # Extract and clean up
-RUN unzip /tmp/frontend.zip -d /usr/share/nginx/html && \
+RUN unzip -o /tmp/frontend.zip -d /usr/share/nginx/html && \
     rm /tmp/frontend.zip
 
 # Copy custom nginx config
