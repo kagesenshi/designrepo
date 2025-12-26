@@ -10,7 +10,6 @@ jobs:
   build-backend:
     runs-on: designrepo-runners
     environment: HOMELAB
-    image: ubuntu:latest 
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -62,7 +61,6 @@ jobs:
   build-frontend:
     runs-on: designrepo-runners
     environment: HOMELAB
-    image: ubuntu:latest 
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
