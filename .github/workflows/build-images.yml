@@ -115,3 +115,29 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/designrepo/frontend:${{ github.sha }}
           cache-from: type=registry,ref=registry.kagesenshi.org/designrepo/frontend:cache
           cache-to: type=registry,ref=registry.kagesenshi.org/designrepo/frontend:cache,mode=max
+
+  notify-argocd:
+    runs-on: designrepo-runners
+    needs: [build-backend, build-frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    environment: HOMELAB
+    steps:
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /tmp/argocd
+          
+      - name: Sync Application with New Images
+        env:
+          ARGOCD_SERVER: ${{ vars.ARGOCD_SERVER }}
+        run: |
+          /tmp/argocd login $ARGOCD_SERVER \
+            --auth-token ${{ secrets.ARGOCD_TOKEN }} \
+            --insecure
+          
+          /tmp/argocd app set designrepo \
+            --kustomize-image backend=ghcr.io/${{ github.repository_owner }}/designrepo/backend:${{ github.sha }} \
+            --kustomize-image frontend=ghcr.io/${{ github.repository_owner }}/designrepo/frontend:${{ github.sha }}
+          
+          /tmp/argocd app sync designrepo
+

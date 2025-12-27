@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: designrepo
+
+resources:
+  - ../../base
+
+patches:
+  - path: backend-env-patch.yaml
+    target:
+      kind: Deployment
+      name: backend
+
+commonLabels:
+  environment: development
