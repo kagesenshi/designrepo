@@ -15,7 +15,7 @@ if [ -n "$BACKEND_URL" ]; then
     echo "Replacing ws://localhost:8000 with $WS_BACKEND_URL"
 
     # Search for reflex-env-*.js and perform replacements
-    for file in /var/www/html/reflex-env-*.js; do
+    for file in /usr/share/nginx/html/reflex-env-*.js; do
         if [ -f "$file" ]; then
             sed -i "s|http://localhost:8000|$BACKEND_URL|g" "$file"
             sed -i "s|ws://localhost:8000|$WS_BACKEND_URL|g" "$file"
