@@ -14,10 +14,11 @@ WORKDIR /app
 
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
-COPY . .
 
 # Install dependencies using uv
 RUN pip install uv && uv sync --frozen --no-cache
+
+COPY . .
 
 # --- Backend Stage ---
 FROM base AS backend
