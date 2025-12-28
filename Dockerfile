@@ -71,6 +71,10 @@ RUN printf "server {\n\
     }\n\
     }\n" > /etc/nginx/conf.d/default.conf
 
+# Copy entrypoint script
+COPY frontend-entrypoint.sh /usr/local/bin/frontend-entrypoint.sh
+RUN chmod +x /usr/local/bin/frontend-entrypoint.sh
+
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/usr/local/bin/frontend-entrypoint.sh"]
