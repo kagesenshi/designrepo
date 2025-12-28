@@ -119,7 +119,7 @@ jobs:
   notify-argocd:
     runs-on: designrepo-runners
     needs: [build-backend, build-frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.ARGOCD_SERVER != ''
     environment: HOMELAB
     steps:
       - name: Install ArgoCD CLI
