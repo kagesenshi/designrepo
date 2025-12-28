@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl unzip && \
     apt-get install -y nodejs && \
     curl -fsSL https://bun.com/install | bash && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* \
+    rm -rf /var/lib/apt/lists/* && \
     pip install uv
 
 # Set working directory
