@@ -7,7 +7,5 @@ reflex.db
 .git
 .gitignore
 .agent
-alembic
 uploaded_files
 node_modules
-/home/izhar/.gemini
