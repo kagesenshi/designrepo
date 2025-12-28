@@ -40,10 +40,6 @@ RUN apt-get update && apt-get install -y curl unzip && \
 # Copy application source
 COPY . .
 
-# Argument for backend URL
-ARG BACKEND_URL
-ENV API_URL=${BACKEND_URL}
-
 # Export the frontend
 # Note: This creates frontend.zip
 RUN uv run reflex export --frontend-only
@@ -58,14 +54,14 @@ RUN apk add --no-cache unzip
 COPY --from=frontend-builder /app/frontend.zip /tmp/frontend.zip
 
 # Extract and clean up
-RUN unzip -o /tmp/frontend.zip -d /usr/share/nginx/html && \
+RUN unzip -o /tmp/frontend.zip -d /var/www/html && \
     rm /tmp/frontend.zip
 
 # Copy custom nginx config
 RUN printf "server {\n\
     listen 80;\n\
     location / {\n\
-    root /usr/share/nginx/html;\n\
+    root /var/www/html;\n\
     index index.html;\n\
     try_files \$uri \$uri/ /404.html;\n\
     }\n\
