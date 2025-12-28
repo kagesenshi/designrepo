@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y curl unzip && \
     apt-get install -y nodejs && \
     curl -fsSL https://bun.com/install | bash && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* \
+    pip install uv
 
 # Set working directory
 WORKDIR /app
@@ -16,7 +17,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies using uv
-RUN pip install uv && uv sync --frozen --no-cache
+RUN uv sync --frozen --no-cache
 
 COPY . .
 
