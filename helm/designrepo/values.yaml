@@ -57,14 +57,6 @@ frontend:
   env:
     BACKEND_URL: "http://localhost:8000"
 
-config:
-  name: designrepo-config
-  data: {}
-
-secrets:
-  name: designrepo-secrets
-  data: {}
-
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

@@ -72,10 +72,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "designrepo.fullname" . }}-be-env
-            - secretRef:
-                name: {{ .Values.secrets.name }}
-            - configMapRef:
-                name: {{ .Values.config.name }}
           livenessProbe:
             httpGet:
               path: /ping
