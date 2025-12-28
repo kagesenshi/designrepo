@@ -54,6 +54,8 @@ frontend:
     requests:
       cpu: 50m
       memory: 64Mi
+  env:
+    BACKEND_URL: "http://localhost:8000"
 
 config:
   name: designrepo-config

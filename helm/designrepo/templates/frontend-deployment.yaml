@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "designrepo.fullname" . }}-frontend
+  name: {{ include "designrepo.fullname" . }}-fe
   labels:
     {{- include "designrepo.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
@@ -38,6 +38,13 @@ spec:
             - name: http
               containerPort: {{ .Values.frontend.service.port }}
               protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "designrepo.fullname" . }}-fe-env
+            - secretRef:
+                name: {{ .Values.secrets.name }}
+            - configMapRef:
+                name: {{ .Values.config.name }}
           livenessProbe:
             httpGet:
               path: /
