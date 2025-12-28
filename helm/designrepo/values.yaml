@@ -28,12 +28,13 @@ backend:
     PYTHONUNBUFFERED: "1"
   database:
     secretName: designrepo-cluster-app
-    userKey: user
+    userKey: username
     hostKey: host
     portKey: port
     passwordKey: password
     dbnameKey: dbname
-    uriKey: fqdn-uri
+    uriKey: uri
+    driver: postgresql+psycopg2
 
 frontend:
   name: frontend

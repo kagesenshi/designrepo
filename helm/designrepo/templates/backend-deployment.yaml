@@ -28,6 +28,41 @@ spec:
       serviceAccountName: {{ include "designrepo.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: db-upgrade
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["uv", "run", "reflex", "db", "migrate"]
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.secretName }}
+                  key: {{ .Values.backend.database.userKey }}
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.secretName }}
+                  key: {{ .Values.backend.database.hostKey }}
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.secretName }}
+                  key: {{ .Values.backend.database.portKey }}
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.secretName }}
+                  key: {{ .Values.backend.database.passwordKey }}
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.secretName }}
+                  key: {{ .Values.backend.database.dbnameKey }}
+            - name: DB_DRIVER
+              value: {{ .Values.backend.database.driver | quote }}
+            - name: DESIGNREPO_DB_URL
+              value: "$(DB_DRIVER)://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
       containers:
         - name: backend
           securityContext:
@@ -64,11 +99,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.backend.database.secretName }}
                   key: {{ .Values.backend.database.dbnameKey }}
-            - name: DB_URI
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.backend.database.secretName }}
-                  key: {{ .Values.backend.database.uriKey }}
+            - name: DB_DRIVER
+              value: {{ .Values.backend.database.driver | quote }}
+            - name: DESIGNREPO_DB_URL
+              value: "$(DB_DRIVER)://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
           envFrom:
             - configMapRef:
                 name: {{ include "designrepo.fullname" . }}-be-env
