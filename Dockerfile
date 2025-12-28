@@ -14,15 +14,13 @@ WORKDIR /app
 
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
+COPY . .
 
 # Install dependencies using uv
 RUN pip install uv && uv sync --frozen --no-cache
 
 # --- Backend Stage ---
 FROM base AS backend
-
-# Copy application source
-COPY . .
 
 # Expose backend port
 EXPOSE 8000
@@ -36,9 +34,6 @@ CMD ["uv", "run", "reflex", "run", "--env", "prod", "--backend-only"]
 
 # --- Frontend Builder Stage ---
 FROM base AS frontend-builder
-
-# Copy application source
-COPY . .
 
 # Export the frontend
 RUN uv run reflex export --frontend-only
