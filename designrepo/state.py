@@ -133,7 +133,15 @@ class State(rx.State):
             self.user = UserSchema(sub=sub, email=email, name=name, picture=picture)
 
     async def on_load(self):
-        """Called when the page loads."""
+        if not settings.oidc_issuer:
+            self.user = UserSchema(
+                sub="local",
+                email="local@example.com",
+                name="Local User",
+            )
+            await self.load_repositories()
+            return
+
         code = self.router_data.get("query", {}).get("code")
         state = self.router_data.get("query", {}).get("state")
 
