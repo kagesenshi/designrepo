@@ -57,8 +57,10 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/designrepo/backend:latest
             ghcr.io/${{ github.repository_owner }}/designrepo/backend:${{ github.sha }}
-          cache-from: type=registry,ref=registry.kagesenshi.org/designrepo/backend:cache
-          cache-to: type=registry,ref=registry.kagesenshi.org/designrepo/backend:cache,mode=max
+          cache-from: type=local,src=/cache
+          cache-to: type=local,dest=/cache,mode=max
+
+
 
   build-frontend:
     runs-on: designrepo-runners
