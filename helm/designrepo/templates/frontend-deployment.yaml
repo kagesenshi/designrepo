@@ -45,6 +45,11 @@ spec:
             - secretRef:
                 name: {{ .secretName }}
             {{- end }}
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /
@@ -63,6 +68,10 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: {{ include "designrepo.fullname" . }}-fe-nginx
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -54,7 +54,7 @@ frontend:
       cpu: 50m
       memory: 64Mi
   env:
-    BACKEND_URL: "http://localhost:8000"
+    BACKEND_URL: "/be"
   envSecrets: []
 
 serviceAccount:
