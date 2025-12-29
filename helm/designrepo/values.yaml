@@ -35,6 +35,7 @@ backend:
     dbnameKey: dbname
     uriKey: uri
     driver: postgresql+psycopg2
+  envSecrets: []
 
 frontend:
   name: frontend
@@ -54,6 +55,7 @@ frontend:
       memory: 64Mi
   env:
     BACKEND_URL: "http://localhost:8000"
+  envSecrets: []
 
 serviceAccount:
   # Specifies whether a service account should be created

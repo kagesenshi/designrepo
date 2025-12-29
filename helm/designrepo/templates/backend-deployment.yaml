@@ -63,6 +63,13 @@ spec:
               value: {{ .Values.backend.database.driver | quote }}
             - name: DESIGNREPO_DB_URL
               value: "$(DB_DRIVER)://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+          envFrom:
+            - configMapRef:
+                name: {{ include "designrepo.fullname" . }}-be-env
+            {{- range .Values.backend.envSecrets }}
+            - secretRef:
+                name: {{ .secretName }}
+            {{- end }}
       containers:
         - name: backend
           securityContext:
@@ -106,6 +113,10 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "designrepo.fullname" . }}-be-env
+            {{- range .Values.backend.envSecrets }}
+            - secretRef:
+                name: {{ .secretName }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /ping

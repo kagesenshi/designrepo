@@ -41,6 +41,10 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "designrepo.fullname" . }}-fe-env
+            {{- range .Values.frontend.envSecrets }}
+            - secretRef:
+                name: {{ .secretName }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /
