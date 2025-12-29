@@ -53,6 +53,11 @@ jobs:
         with:
           context: .
           target: backend
+          build-args: |
+            HTTP_PROXY=${{ vars.PROXY }}
+            HTTPS_PROXY=${{ vars.PROXY }}
+            http_proxy=${{ vars.PROXY }}
+            https_proxy=${{ vars.PROXY }}
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/designrepo/backend:latest
@@ -107,6 +112,10 @@ jobs:
           target: frontend
           build-args: |
             BACKEND_URL=http://localhost:8000
+            HTTP_PROXY=${{ vars.PROXY }}
+            HTTPS_PROXY=${{ vars.PROXY }}
+            http_proxy=${{ vars.PROXY }}
+            https_proxy=${{ vars.PROXY }}
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/designrepo/frontend:latest
