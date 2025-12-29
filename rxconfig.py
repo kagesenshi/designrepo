@@ -1,9 +1,9 @@
 import reflex as rx
-import os
+from designrepo.settings import settings
 
 config = rx.Config(
     app_name="designrepo",
-    db_url=os.environ.get("DESIGNREPO_DB_URL", "sqlite:///reflex.db"),
+    db_url=settings.db_url,
     plugins=[
         rx.plugins.SitemapPlugin(),
         rx.plugins.TailwindV4Plugin(),

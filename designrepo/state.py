@@ -11,7 +11,7 @@ import pydantic
 from .models import Repository, Diagram, User
 import httpx
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-import os
+from .settings import settings
 
 
 class RepositorySchema(pydantic.BaseModel):
@@ -69,7 +69,7 @@ class State(rx.State):
     oidc_state_cookie: str = rx.Cookie("", name="oidc_state")
 
     async def get_oidc_config(self):
-        issuer = os.environ.get("OIDC_ISSUER")
+        issuer = settings.oidc_issuer
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{issuer}/.well-known/openid-configuration")
             return resp.json()
@@ -77,10 +77,10 @@ class State(rx.State):
     async def login(self):
         config = await self.get_oidc_config()
         client = AsyncOAuth2Client(
-            client_id=os.environ.get("OIDC_CLIENT_ID"),
-            client_secret=os.environ.get("OIDC_CLIENT_SECRET"),
+            client_id=settings.oidc_client_id,
+            client_secret=settings.oidc_client_secret,
             scope="openid email profile",
-            redirect_uri=self.router.url,
+            redirect_uri=settings.oidc_redirect_uri or self.router.url,
         )
         uri, state = client.create_authorization_url(config["authorization_endpoint"])
         self.oidc_state_cookie = state
@@ -98,9 +98,9 @@ class State(rx.State):
                 data={
                     "grant_type": "authorization_code",
                     "code": code,
-                    "redirect_uri": "http://localhost:3000/",
-                    "client_id": os.environ.get("OIDC_CLIENT_ID"),
-                    "client_secret": os.environ.get("OIDC_CLIENT_SECRET"),
+                    "redirect_uri": settings.oidc_redirect_uri or self.router.url,
+                    "client_id": settings.oidc_client_id,
+                    "client_secret": settings.oidc_client_secret,
                 },
             )
             token = resp.json()
@@ -488,7 +488,7 @@ class State(rx.State):
         yield
 
         try:
-            client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
 
             system_msg = f"Generate or modify {self.diagram_type} code based on the user instruction. "
             if self.diagram_type == "plantuml":
@@ -530,7 +530,7 @@ class State(rx.State):
         yield
 
         try:
-            client = openai.AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
 
             system_msg = (
                 "Generate markdown documentation/notes based on the user instruction."
