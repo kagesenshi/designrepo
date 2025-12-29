@@ -37,6 +37,9 @@ CMD ["uv", "run", "reflex", "run", "--env", "prod", "--backend-only"]
 # --- Frontend Builder Stage ---
 FROM base AS frontend-builder
 
+# Set dummy environment variables for export
+ENV OPENAI_API_KEY=dummy
+
 # Export the frontend
 RUN uv run reflex export --frontend-only
 
